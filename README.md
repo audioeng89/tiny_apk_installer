@@ -1,6 +1,6 @@
 # Tiny APK Installer
 
-A simple terminal UI (TUI) application to take the hassle out of installing APKs and bunldes on Android devices via ADB.
+A simple terminal UI (TUI) application to take the hassle out of installing APKs and bundles on Android devices via ADB.
 Tiny APK does not include ADB, it can plug into an existing PATH or can download ADB for you from Google.
 
 ![ADB Configure Page](screenshots/configure_adb.png)
