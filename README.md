@@ -1,15 +1,15 @@
 # Tiny APK Installer
 
 A simple terminal UI (TUI) application to take the hassle out of installing APKs and bundles on Android devices via ADB.
-Tiny APK does not include ADB, it can plug into an existing PATH or can download ADB for you from Google.
+Tiny APK Installer does not include ADB, it can plug into an existing PATH or can download ADB for you from Google.
 
 ![ADB Configure Page](screenshots/configure_adb.png)
+
+The UI is powered by the stunning [Bubble Tea Go framework](https://github.com/charmbracelet/bubbletea). This project was built with the assistance of MiniMax M2.7.
 
 <a href='https://ko-fi.com/T6T11HTIG3' target='_blank'>
   <img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' />
 </a>
-
-This project was built with the assistance of AI, specifically MiniMax M2.7.
 
 ## Features
 
@@ -18,7 +18,7 @@ This project was built with the assistance of AI, specifically MiniMax M2.7.
 - **APK Installation** - Install single APKs, split APKs, or app bundles with OBB data
 - **File Browser** - Browse and select APK files directly from the terminal
 - **Auto ADB** - Downloads ADB directly from Google if you don't have it
-- **Cross-Platform** - Works on Windows, macOS, and Linux
+- **Cross-Platform** - Works on Windows, macOS, and Linux (⚠ I have not tested macOS and Linux builds myself!)
 
 ## Requirements
 
