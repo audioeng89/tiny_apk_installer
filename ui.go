@@ -273,9 +273,9 @@ func (m *model) renderTabs() string {
 
 		var style lipgloss.Style
 		if isActive {
-			style = m.styles.ActiveTab.Copy()
+			style = m.styles.ActiveTab
 		} else {
-			style = m.styles.InactiveTab.Copy()
+			style = m.styles.InactiveTab
 		}
 
 		border, _, _, _, _ := style.GetBorder()

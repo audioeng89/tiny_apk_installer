@@ -26,10 +26,10 @@ platforms=(
     "linux,arm64,linux-arm64"
 )
 
+mkdir -p build
+
 if [ "$ALL" = true ]; then
     echo "Building Tiny APK Installer for all platforms..."
-
-    mkdir -p build
 
     for p in "${platforms[@]}"; do
         IFS=',' read -r goos goarch name <<< "$p"
@@ -38,36 +38,17 @@ if [ "$ALL" = true ]; then
         CGO_ENABLED=0 GOOS=$goos GOARCH=$goarch go build -ldflags="-s -w -X main.Version=$version" -o "build/tiny-apk-installer-v$version-$name" .
         
         if [ -f "build/tiny-apk-installer-v$version-$name" ]; then
-            size=$(du -h "build/tiny-apk-installer-$version-$name" | cut -f1)
-            echo "    -> build/tiny-apk-installer-$version-$name ($size)"
+            size=$(du -h "build/tiny-apk-installer-v$version-$name" | cut -f1)
+            echo "    -> build/tiny-apk-installer-v$version-$name ($size)"
         fi
     done
-
-    echo ""
-    echo "Build complete!"
 else
     echo "Building Tiny APK Installer for current platform..."
-
-    mkdir -p build
-
-    case "$(uname)" in
-        Linux*)  platform="linux-x64" ;;
-        Darwin*)  
-            case "$(uname -m)" in
-                x86_64) platform="darwin-x64" ;;
-                arm64) platform="darwin-arm64" ;;
-            esac
-            ;;
-        MINGW*|CYGWIN*|MSYS*) 
-            platform="win-x64"
-            ;;
-    esac
-
-    CGO_ENABLED=0 go build -ldflags="-s -w -X main.Version=$version" -o "build/tiny-apk-installer-v$version-$platform" .
-
-    size=$(du -h "build/tiny-apk-installer-v$version-$platform" | cut -f1)
-    echo ""
-    echo "Build complete!"
-    echo "  Executable: build/tiny-apk-installer-v$version-$platform"
+    CGO_ENABLED=0 go build -ldflags="-s -w -X main.Version=$version" -o "build/tiny-apk-installer" .
+    size=$(du -h "build/tiny-apk-installer" | cut -f1)
+    echo "  Executable: build/tiny-apk-installer"
     echo "  Size: $size"
 fi
+
+echo ""
+echo "Build complete!"

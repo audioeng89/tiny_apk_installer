@@ -28,12 +28,12 @@ $platforms = @(
     @{ GOOS = "linux"; GOARCH = "arm64"; Name = "linux-arm64" }
 )
 
+if (-not (Test-Path "build")) {
+    New-Item -ItemType Directory -Path "build" | Out-Null
+}
+
 if ($All) {
     Write-Host "Building Tiny APK Installer for all platforms..."
-
-    if (-not (Test-Path "build")) {
-        New-Item -ItemType Directory -Path "build" | Out-Null
-    }
 
     foreach ($p in $platforms) {
         $env:GOOS = $p.GOOS
@@ -52,47 +52,18 @@ if ($All) {
             Write-Host "    -> $output ($sizeStr)"
         }
     }
-
-    Write-Host ""
-    Write-Host "Build complete!"
 } else {
-    $os = $env:OS
-    $arch = $env:PROCESSOR_ARCHITECTURE
-
-    if ($os -eq "Windows_NT") {
-        if ($arch -eq "AMD64") {
-            $goos = "windows"
-            $goarch = "amd64"
-            $platform = "win-x64"
-        } elseif ($arch -eq "ARM64") {
-            $goos = "windows"
-            $goarch = "arm64"
-            $platform = "win-arm64"
-        }
-    } elseif ($os -eq "Unix") {
-        $goos = "linux"
-        $goarch = if ($arch -eq "x86_64") { "amd64" } elseif ($arch -eq "aarch64") { "arm64" } else { "amd64" }
-        $platform = "linux-x64"
-    }
-
-    Write-Host "Building Tiny APK Installer for current platform ($platform)..."
-
-    if (-not (Test-Path "build")) {
-        New-Item -ItemType Directory -Path "build" | Out-Null
-    }
+    Write-Host "Building Tiny APK Installer for current platform..."
 
     $env:CGO_ENABLED = "0"
-    $env:GOOS = $goos
-    $env:GOARCH = $goarch
-
-    $ext = if ($goos -eq "windows") { ".exe" } else { "" }
-    $output = "build/tiny-apk-installer-$version-$platform$ext"
+    $output = "build/tiny-apk-installer.exe"
 
     go build -ldflags="-s -w -X main.Version=$version" -o $output .
 
     $exe = Get-Item $output
-    Write-Host ""
-    Write-Host "Build complete!"
     Write-Host "  Executable: $output"
     Write-Host ("  Size: {0:N2} MB" -f ($exe.Length / 1MB))
 }
+
+Write-Host ""
+Write-Host "Build complete!"
