@@ -2,7 +2,6 @@ package main
 
 import (
 	"os/exec"
-	"runtime"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -88,10 +87,7 @@ func tabBorderWithBottom(left, middle, right string) lipgloss.Border {
 }
 
 func (m *model) Init() tea.Cmd {
-	exeName := "adb"
-	if runtime.GOOS == "windows" {
-		exeName = "adb.exe"
-	}
+	exeName := getAdbExeName()
 
 	if path, err := exec.LookPath(exeName); err == nil {
 		m.adbPath = path

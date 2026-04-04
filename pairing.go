@@ -65,32 +65,8 @@ func (t *PairingTab) Update(m *model, msg tea.Msg) (tea.Model, []tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "up":
-			if m.wirelessFocus >= 0 && m.wirelessFocus < len(m.wirelessInputs) {
-				m.wirelessInputs[m.wirelessFocus].Blur()
-			}
-			m.wirelessFocus--
-			if m.wirelessFocus < 0 {
-				m.wirelessFocus = len(m.wirelessInputs)
-			}
-			if m.wirelessFocus >= 0 && m.wirelessFocus < len(m.wirelessInputs) {
-				return m, []tea.Cmd{m.wirelessInputs[m.wirelessFocus].Focus()}
-			}
-
-		case "down":
-			if m.wirelessFocus >= 0 && m.wirelessFocus < len(m.wirelessInputs) {
-				m.wirelessInputs[m.wirelessFocus].Blur()
-			}
-			m.wirelessFocus++
-			if m.wirelessFocus > len(m.wirelessInputs) {
-				m.wirelessFocus = 0
-			}
-			if m.wirelessFocus >= 0 && m.wirelessFocus < len(m.wirelessInputs) {
-				return m, []tea.Cmd{m.wirelessInputs[m.wirelessFocus].Focus()}
-			}
-
-		case "enter":
-			if m.wirelessFocus == len(m.wirelessInputs) {
+		case "up", "down", "enter":
+			if msg.String() == "enter" && m.wirelessFocus == len(m.wirelessInputs) {
 				ip := m.wirelessInputs[0].Value()
 				port := m.wirelessInputs[1].Value()
 				code := m.wirelessInputs[2].Value()
@@ -110,17 +86,26 @@ func (t *PairingTab) Update(m *model, msg tea.Msg) (tea.Model, []tea.Cmd) {
 				} else {
 					return m, t.doPairing(m, ip, port, code)
 				}
-			} else {
-				if m.wirelessFocus >= 0 && m.wirelessFocus < len(m.wirelessInputs) {
-					m.wirelessInputs[m.wirelessFocus].Blur()
+			}
+
+			if m.wirelessFocus >= 0 && m.wirelessFocus < len(m.wirelessInputs) {
+				m.wirelessInputs[m.wirelessFocus].Blur()
+			}
+
+			if msg.String() == "up" {
+				m.wirelessFocus--
+				if m.wirelessFocus < 0 {
+					m.wirelessFocus = len(m.wirelessInputs)
 				}
+			} else {
 				m.wirelessFocus++
 				if m.wirelessFocus > len(m.wirelessInputs) {
 					m.wirelessFocus = 0
 				}
-				if m.wirelessFocus < len(m.wirelessInputs) {
-					return m, []tea.Cmd{m.wirelessInputs[m.wirelessFocus].Focus()}
-				}
+			}
+
+			if m.wirelessFocus >= 0 && m.wirelessFocus < len(m.wirelessInputs) {
+				return m, []tea.Cmd{m.wirelessInputs[m.wirelessFocus].Focus()}
 			}
 		}
 

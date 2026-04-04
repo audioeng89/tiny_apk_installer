@@ -243,26 +243,6 @@ func (c ADBConfig) InstallMultiple(apkPaths []string) InstallResult {
 	return InstallResult{Success: false, Error: output}
 }
 
-func GetConnectedDevices() ([]string, error) {
-	output, err := runAdb("devices")
-	if err != nil {
-		return nil, err
-	}
-
-	var devices []string
-	for _, line := range strings.Split(output, "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" || strings.HasPrefix(line, "List of") {
-			continue
-		}
-		parts := strings.Fields(line)
-		if len(parts) >= 2 && parts[1] == "device" {
-			devices = append(devices, parts[0])
-		}
-	}
-	return devices, nil
-}
-
 var adbServerStarted bool = false
 
 func StartADBServer() error {

@@ -23,10 +23,7 @@ func GetTempADBDir() string {
 
 func ValidateADBPath(path string) error {
 	platform := runtime.GOOS
-	exeName := "adb"
-	if platform == "windows" {
-		exeName = "adb.exe"
-	}
+	exeName := getAdbExeName()
 
 	adbPath := filepath.Join(path, exeName)
 	if _, err := os.Stat(adbPath); os.IsNotExist(err) {
@@ -50,10 +47,7 @@ func ValidateADBPath(path string) error {
 func CheckADBInTemp() (string, bool) {
 	tempDir := GetTempADBDir()
 	platform := runtime.GOOS
-	exeName := "adb"
-	if platform == "windows" {
-		exeName = "adb.exe"
-	}
+	exeName := getAdbExeName()
 
 	adbPath := filepath.Join(tempDir, exeName)
 	if _, err := os.Stat(adbPath); err == nil {
@@ -195,10 +189,7 @@ func DownloadADB() (string, error) {
 
 	os.Remove(zipPath)
 
-	exeName := "adb"
-	if platform == "windows" {
-		exeName = "adb.exe"
-	}
+	exeName := getAdbExeName()
 
 	return filepath.Join(tempDir, exeName), nil
 }
