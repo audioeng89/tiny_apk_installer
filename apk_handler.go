@@ -7,8 +7,11 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
+
+var validPackageName = regexp.MustCompile(`^[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)+$`)
 
 type BundleType int
 
@@ -171,6 +174,10 @@ func (h *APKHandler) parseXAPKManifest(path string) error {
 	var manifest xapkManifest
 	if err := json.Unmarshal(data, &manifest); err != nil {
 		return err
+	}
+
+	if !validPackageName.MatchString(manifest.PackageName) {
+		return fmt.Errorf("invalid package name in manifest: %s", manifest.PackageName)
 	}
 
 	h.packageName = manifest.PackageName
