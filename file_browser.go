@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -77,23 +78,15 @@ func (fb *FileBrowser) readDir() {
 }
 
 func sortDirs(dirs []os.DirEntry) {
-	for i := 0; i < len(dirs)-1; i++ {
-		for j := i + 1; j < len(dirs); j++ {
-			if strings.ToLower(dirs[i].Name()) > strings.ToLower(dirs[j].Name()) {
-				dirs[i], dirs[j] = dirs[j], dirs[i]
-			}
-		}
-	}
+	sort.Slice(dirs, func(i, j int) bool {
+		return strings.ToLower(dirs[i].Name()) < strings.ToLower(dirs[j].Name())
+	})
 }
 
 func sortFiles(files []os.DirEntry) {
-	for i := 0; i < len(files)-1; i++ {
-		for j := i + 1; j < len(files); j++ {
-			if strings.ToLower(files[i].Name()) > strings.ToLower(files[j].Name()) {
-				files[i], files[j] = files[j], files[i]
-			}
-		}
-	}
+	sort.Slice(files, func(i, j int) bool {
+		return strings.ToLower(files[i].Name()) < strings.ToLower(files[j].Name())
+	})
 }
 
 func isAPKFile(name string) bool {
