@@ -2,7 +2,6 @@ package main
 
 import (
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -118,10 +117,7 @@ func (s *splashModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			s.browseError = err.Error()
 			return s, nil
 		}
-		exeName := "adb"
-		if runtime.GOOS == "windows" {
-			exeName = "adb.exe"
-		}
+		exeName := getAdbExeName()
 		adbPath = msg.Path + string(filepath.Separator) + exeName
 		return s, func() tea.Msg { return SplashContinueMsg{} }
 
@@ -144,43 +140,32 @@ func (s *splashModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (s *splashModel) handleSelect() tea.Cmd {
 	s.downloadSpinner = NewSpinner(defaultTheme)
 
+	startADBCmd := func() tea.Cmd {
+		s.isStartingADB = true
+		s.startADBError = ""
+		return tea.Batch(
+			s.downloadSpinner.Tick,
+			func() tea.Msg {
+				if err := StartADBServer(); err != nil {
+					s.isStartingADB = false
+					s.startADBError = err.Error()
+					return nil
+				}
+				return SplashContinueMsg{}
+			},
+		)
+	}
+
 	switch s.selectedOption {
 	case SplashOptionUsePath:
 		if s.adbFound {
-			s.isStartingADB = true
-			s.startADBError = ""
-			return tea.Batch(
-				s.downloadSpinner.Tick,
-				func() tea.Msg {
-					if err := StartADBServer(); err != nil {
-						s.isStartingADB = false
-						s.startADBError = err.Error()
-						return nil
-					}
-					return SplashContinueMsg{}
-				},
-			)
+			return startADBCmd()
 		}
 		return nil
 	case SplashOptionUseTemp:
 		if s.adbInTemp {
-			adbPath = s.tempPath + string(filepath.Separator) + "adb"
-			if runtime.GOOS == "windows" {
-				adbPath = s.tempPath + string(filepath.Separator) + "adb.exe"
-			}
-			s.isStartingADB = true
-			s.startADBError = ""
-			return tea.Batch(
-				s.downloadSpinner.Tick,
-				func() tea.Msg {
-					if err := StartADBServer(); err != nil {
-						s.isStartingADB = false
-						s.startADBError = err.Error()
-						return nil
-					}
-					return SplashContinueMsg{}
-				},
-			)
+			adbPath = s.tempPath + string(filepath.Separator) + getAdbExeName()
+			return startADBCmd()
 		}
 		return nil
 	case SplashOptionDownload:
