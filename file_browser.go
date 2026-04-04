@@ -130,14 +130,16 @@ func (fb *FileBrowser) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "enter", "right", "l":
-			if fb.selected < len(fb.files) && fb.selected >= 0 {
-				if fb.files[fb.selected] == nil {
-					fb.currentDir = filepath.Dir(fb.currentDir)
-					fb.readDir()
-				} else if fb.files[fb.selected].IsDir() {
-					fb.currentDir = filepath.Join(fb.currentDir, fb.files[fb.selected].Name())
-					fb.readDir()
-				}
+			if fb.selected >= len(fb.files) || fb.selected < 0 {
+				break
+			}
+			f := fb.files[fb.selected]
+			if f == nil {
+				fb.currentDir = filepath.Dir(fb.currentDir)
+				fb.readDir()
+			} else if f.IsDir() {
+				fb.currentDir = filepath.Join(fb.currentDir, f.Name())
+				fb.readDir()
 			}
 		case "backspace", "left", "h":
 			if fb.currentDir != filepath.VolumeName(fb.currentDir)+string(filepath.Separator) {
@@ -179,16 +181,16 @@ func (fb *FileBrowser) View() string {
 		}
 		if f != nil && f.IsDir() {
 			// Folders always use muted color
-			if i == fb.selected {
-				b.WriteString(muted.Render("> " + name))
+			name = muted.Render(name)
+		}
+
+		if i == fb.selected {
+			if f == nil || f.IsDir() {
+				b.WriteString(muted.Render("> ") + name)
 			} else {
-				b.WriteString(muted.Render(name))
+				b.WriteString(selected.Render("> " + name))
 			}
-		} else if i == fb.selected {
-			// APK files use selected style when highlighted
-			b.WriteString(selected.Render("> " + name))
 		} else {
-			// APK files plain when not selected
 			b.WriteString(name)
 		}
 		b.WriteString("\n")

@@ -205,18 +205,18 @@ func ipValidator(s string) error {
 	}
 	parts := strings.Split(s, ".")
 	if len(parts) != 4 {
-		return fmt.Errorf("IP must have 4 parts")
+		return fmt.Errorf("ip must have 4 parts")
 	}
 	for _, part := range parts {
 		if len(part) == 0 {
-			return fmt.Errorf("IP octet cannot be empty")
+			return fmt.Errorf("ip octet cannot be empty")
 		}
 		var n int
 		if _, err := fmt.Sscanf(part, "%d", &n); err != nil {
-			return fmt.Errorf("IP octet must be numeric")
+			return fmt.Errorf("ip octet must be numeric")
 		}
 		if n < 0 || n > 255 {
-			return fmt.Errorf("IP octet must be 0-255")
+			return fmt.Errorf("ip octet must be 0-255")
 		}
 	}
 	return nil
@@ -228,15 +228,15 @@ func portValidator(s string) error {
 	}
 	for _, c := range s {
 		if c < '0' || c > '9' {
-			return fmt.Errorf("Port must be numeric")
+			return fmt.Errorf("port must be numeric")
 		}
 	}
 	var n int
 	if _, err := fmt.Sscanf(s, "%d", &n); err != nil {
-		return fmt.Errorf("Port must be numeric")
+		return fmt.Errorf("port must be numeric")
 	}
 	if n < 1 || n > 65535 {
-		return fmt.Errorf("Port must be 1-65535")
+		return fmt.Errorf("port must be 1-65535")
 	}
 	return nil
 }
@@ -246,11 +246,11 @@ func codeValidator(s string) error {
 		return nil
 	}
 	if len(s) != 6 {
-		return fmt.Errorf("Code must be exactly 6 digits")
+		return fmt.Errorf("code must be exactly 6 digits")
 	}
 	for _, c := range s {
 		if c < '0' || c > '9' {
-			return fmt.Errorf("Code must be numeric only")
+			return fmt.Errorf("code must be numeric only")
 		}
 	}
 	return nil

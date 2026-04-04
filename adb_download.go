@@ -1,14 +1,12 @@
 package main
 
 import (
-	"archive/zip"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 )
 
 var tempADBDir string
@@ -21,53 +19,40 @@ func GetTempADBDir() string {
 	return tempADBDir
 }
 
-func ValidateADBPath(path string) error {
-	platform := runtime.GOOS
+func hasADBFiles(dir string, isWindows bool) error {
 	exeName := "adb"
-	if platform == "windows" {
+	if isWindows {
 		exeName = "adb.exe"
 	}
 
-	adbPath := filepath.Join(path, exeName)
-	if _, err := os.Stat(adbPath); os.IsNotExist(err) {
-		return fmt.Errorf("adb not found in selected folder")
+	if _, err := os.Stat(filepath.Join(dir, exeName)); os.IsNotExist(err) {
+		return fmt.Errorf("adb not found")
 	}
 
-	if platform == "windows" {
-		dll1 := filepath.Join(path, "AdbWinApi.dll")
-		dll2 := filepath.Join(path, "AdbWinUsbApi.dll")
-		if _, err := os.Stat(dll1); os.IsNotExist(err) {
-			return fmt.Errorf("AdbWinApi.dll not found in selected folder")
+	if isWindows {
+		if _, err := os.Stat(filepath.Join(dir, "AdbWinApi.dll")); os.IsNotExist(err) {
+			return fmt.Errorf("AdbWinApi.dll not found")
 		}
-		if _, err := os.Stat(dll2); os.IsNotExist(err) {
-			return fmt.Errorf("AdbWinUsbApi.dll not found in selected folder")
+		if _, err := os.Stat(filepath.Join(dir, "AdbWinUsbApi.dll")); os.IsNotExist(err) {
+			return fmt.Errorf("AdbWinUsbApi.dll not found")
 		}
 	}
 
 	return nil
 }
 
+func ValidateADBPath(path string) error {
+	return hasADBFiles(path, runtime.GOOS == "windows")
+}
+
 func CheckADBInTemp() (string, bool) {
 	tempDir := GetTempADBDir()
-	platform := runtime.GOOS
-	exeName := "adb"
-	if platform == "windows" {
-		exeName = "adb.exe"
-	}
-
-	adbPath := filepath.Join(tempDir, exeName)
-	if _, err := os.Stat(adbPath); err == nil {
-		if platform == "windows" {
-			dll1 := filepath.Join(tempDir, "AdbWinApi.dll")
-			dll2 := filepath.Join(tempDir, "AdbWinUsbApi.dll")
-			if _, err := os.Stat(dll1); err == nil {
-				if _, err := os.Stat(dll2); err == nil {
-					return adbPath, true
-				}
-			}
-		} else {
-			return adbPath, true
+	if err := hasADBFiles(tempDir, runtime.GOOS == "windows"); err == nil {
+		exeName := "adb"
+		if runtime.GOOS == "windows" {
+			exeName = "adb.exe"
 		}
+		return filepath.Join(tempDir, exeName), true
 	}
 	return "", false
 }
@@ -118,82 +103,27 @@ func DownloadADB() (string, error) {
 		return "", fmt.Errorf("failed to write zip file: %w", err)
 	}
 
-	zr, err := zip.OpenReader(zipPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to open zip: %w", err)
+	if err := extractZip(zipPath, tempDir); err != nil {
+		return "", fmt.Errorf("failed to extract zip: %w", err)
 	}
-	defer zr.Close()
-
-	prefix := "platform-tools/"
-	tempDir = filepath.Clean(tempDir)
-	targetFiles := []string{"adb", "adb.exe", "AdbWinApi.dll", "AdbWinUsbApi.dll"}
-	targetSet := make(map[string]bool)
-	for _, f := range targetFiles {
-		targetSet[f] = true
-	}
-
-	for _, f := range zr.File {
-		if !strings.HasPrefix(f.Name, prefix) {
-			continue
-		}
-
-		outName := strings.TrimPrefix(f.Name, prefix)
-		if outName == "" {
-			continue
-		}
-
-		baseName := outName
-		if idx := strings.LastIndex(outName, "/"); idx > 0 {
-			baseName = outName[idx+1:]
-		}
-
-		if !targetSet[baseName] {
-			continue
-		}
-
-		destPath := filepath.Join(tempDir, outName)
-		destPath = filepath.Clean(destPath)
-
-		if !strings.HasPrefix(destPath, tempDir+string(filepath.Separator)) {
-			continue
-		}
-
-		if f.FileInfo().IsDir() {
-			os.MkdirAll(destPath, 0755)
-			continue
-		}
-
-		src, err := f.Open()
-		if err != nil {
-			return "", fmt.Errorf("failed to open zip entry: %w", err)
-		}
-
-		if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
-			src.Close()
-			return "", fmt.Errorf("failed to create directory: %w", err)
-		}
-
-		dest, err := os.Create(destPath)
-		if err != nil {
-			src.Close()
-			return "", fmt.Errorf("failed to create file: %w", err)
-		}
-
-		if _, err := io.Copy(dest, src); err != nil {
-			src.Close()
-			dest.Close()
-			return "", fmt.Errorf("failed to extract file: %w", err)
-		}
-
-		src.Close()
-		dest.Close()
-
-		if platform != "windows" && (outName == "adb" || strings.HasSuffix(outName, "/adb")) {
-			os.Chmod(destPath, 0755)
-		}
-	}
-
 	os.Remove(zipPath)
+
+	// move platform-tools contents to tempDir directly
+	platformDir := filepath.Join(tempDir, "platform-tools")
+
+	targetFiles := []string{"adb", "adb.exe", "AdbWinApi.dll", "AdbWinUsbApi.dll"}
+	for _, f := range targetFiles {
+		src := filepath.Join(platformDir, f)
+		dst := filepath.Join(tempDir, f)
+		if _, err := os.Stat(src); err == nil {
+			os.Rename(src, dst)
+			if platform != "windows" && f == "adb" {
+				os.Chmod(dst, 0755)
+			}
+		}
+	}
+
+	os.RemoveAll(platformDir)
 
 	exeName := "adb"
 	if platform == "windows" {

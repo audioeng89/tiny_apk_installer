@@ -63,10 +63,7 @@ func (t *InstallTab) Update(m *model, msg tea.Msg) (tea.Model, []tea.Cmd) {
 						Serial: m.selectedDevice.IPPort,
 					}
 					result := m.apkHandler.Install(config)
-					return InstallResultMsg{
-						Success: result.Success,
-						Error:   result.Error,
-					}
+					return InstallResultMsg(result)
 				},
 			}
 		}
@@ -126,10 +123,7 @@ func (t *InstallTab) doInstall(m *model) []tea.Cmd {
 					Serial: m.selectedDevice.IPPort,
 				}
 				result := m.apkHandler.Install(config)
-				return InstallResultMsg{
-					Success: result.Success,
-					Error:   result.Error,
-				}
+				return InstallResultMsg(result)
 			},
 		}
 	}
@@ -143,10 +137,7 @@ func (t *InstallTab) doInstall(m *model) []tea.Cmd {
 				APKPath: m.apkPath,
 			}
 			result := config.Install()
-			return InstallResultMsg{
-				Success: result.Success,
-				Error:   result.Error,
-			}
+			return InstallResultMsg(result)
 		},
 	}
 }
